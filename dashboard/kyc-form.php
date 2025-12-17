@@ -33,8 +33,8 @@
         
         <!-- Form Content -->
         <div class="p-6">
-            <form action="https://apexfinancecredit.com/dashboard/verifyaccount" method="POST" enctype="multipart/form-data" class="space-y-8">
-                <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                
+            <form action="verifyaccount.php" method="POST" enctype="multipart/form-data" class="space-y-8">
+                
                 <!-- Personal Details Section -->
                 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">

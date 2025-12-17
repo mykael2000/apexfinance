@@ -47,7 +47,7 @@
         <div class="bg-gradient-to-r from-primary-50 to-white rounded-xl p-4 border border-primary-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-800">Current Balance</p>
-                <p class="text-lg font-bold text-gray-800">$0</p>
+                <p class="text-lg font-bold text-gray-800">$<?php echo number_format($user['total_balance'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
                 <i data-lucide="wallet" class="h-5 w-5 text-gray-800"></i>
@@ -56,7 +56,7 @@
         <div class="bg-gradient-to-r from-green-50 to-white rounded-xl p-4 border border-green-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Monthly Income</p>
-                <p class="text-lg font-bold text-green-700">$0</p>
+                <p class="text-lg font-bold text-green-700">$<?php echo number_format($user['monthly_income'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                 <i data-lucide="trending-up" class="h-5 w-5 text-green-600"></i>
@@ -65,7 +65,7 @@
         <div class="bg-gradient-to-r from-red-50 to-white rounded-xl p-4 border border-red-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Monthly Outgoing</p>
-                <p class="text-lg font-bold text-red-700">$0</p>
+                <p class="text-lg font-bold text-red-700">$<?php echo number_format($user['monthly_outgoing'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                 <i data-lucide="trending-down" class="h-5 w-5 text-red-600"></i>
@@ -74,7 +74,7 @@
         <div class="bg-gradient-to-r from-purple-50 to-white rounded-xl p-4 border border-purple-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Transaction Limit</p>
-                <p class="text-lg font-bold text-purple-700">$500,000.00</p>
+                <p class="text-lg font-bold text-purple-700">$<?php echo number_format($user['transaction_limit'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                 <i data-lucide="gauge" class="h-5 w-5 text-purple-600"></i>
@@ -138,7 +138,7 @@
                             </button>
                         </div>
                         <div x-show="balanceVisible" x-transition class="text-3xl font-bold">
-                            $0 USD
+                            $<?php echo number_format($user['total_balance'],2,'.',','); ?> USD
                         </div>
                         <div x-show="!balanceVisible" x-transition class="text-3xl font-bold">
                             *******
@@ -258,34 +258,7 @@
                     </a>
                 </div>
             </div>
-           <!-- Cards Section to add to the Dashboard -->
-<div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 mb-6">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <div class="flex items-center">
-            <i data-lucide="credit-card" class="h-5 w-5 text-gray-500 mr-2"></i>
-            <h3 class="text-lg font-medium text-gray-900">Your Cards</h3>
-        </div>
-        <a href="cards.php" class="text-sm font-medium text-primary-600 hover:text-primary-500 flex items-center">
-            View all <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
-        </a>
-    </div>
-
-    <div class="p-6">
-                    <div class="py-8 flex flex-col items-center justify-center text-center">
-                <div class="bg-gray-50 rounded-full p-3 mb-4">
-                    <i data-lucide="credit-card" class="h-8 w-8 text-gray-400"></i>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900">No cards yet</h3>
-                <p class="text-gray-500 text-sm mt-2 mb-4 max-w-md">
-                    You haven't applied for any virtual cards yet. Apply for a new card to get started with secure online payments.
-                </p>
-                <a href="cards.php?type=apply" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                    <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Apply for Card
-                </a>
-            </div>
-            </div>
-</div>
-
+       
             <!-- Recent Transactions Card -->
             <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -293,22 +266,106 @@
                         <i data-lucide="list" class="h-5 w-5 text-gray-500 mr-2"></i>
                         <h3 class="text-lg font-medium text-gray-900">Recent Transactions</h3>
                     </div>
-                    <a href="accounthistory.php" class="text-sm font-medium text-primary-600 hover:text-primary-500 flex items-center">
-                        View all <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
+                    <a href="accounthistory.php"
+                    class="text-sm font-medium text-primary-600 hover:text-primary-500 flex items-center">
+                        View all
+                        <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
                     </a>
                 </div>
 
                 <div class="overflow-x-auto">
-                                            <div class="py-12 flex flex-col items-center justify-center">
+                    <?php if ($hasTransactions): ?>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <?php while ($tx = mysqli_fetch_assoc($txQuery)): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-sm font-medium
+                                                <?= $tx['type'] === 'Credit' ? 'text-green-600' : 'text-red-600' ?>">
+                                                <?= htmlspecialchars($tx['type']) ?>
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            $<?= number_format($tx['amount'], 2) ?>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium
+                                                <?php
+                                                    echo match ($tx['status']) {
+                                                        'Completed' => 'bg-green-100 text-green-700',
+                                                        'Pending'   => 'bg-yellow-100 text-yellow-700',
+                                                        'Failed'    => 'bg-red-100 text-red-700',
+                                                        default     => 'bg-gray-100 text-gray-700'
+                                                    };
+                                                ?>">
+                                                <?= htmlspecialchars($tx['status']) ?>
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?= date('M d, Y', strtotime($tx['created_at'])) ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+
+                    <?php else: ?>
+                        <!-- EMPTY STATE -->
+                        <div class="py-12 flex flex-col items-center justify-center">
                             <i data-lucide="inbox" class="h-16 w-16 text-gray-300 mb-4"></i>
                             <p class="text-lg font-medium text-gray-600">No transactions yet</p>
-                            <p class="text-sm text-gray-500 mt-1 mb-4">Your transaction history will appear here</p>
-                            <a href="deposits.php" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">
+                            <p class="text-sm text-gray-500 mt-1 mb-4">
+                                Your transaction history will appear here
+                            </p>
+                            <a href="deposits.php"
+                            class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium
+                                    text-white bg-primary-600 hover:bg-primary-700">
                                 Make your first deposit
                             </a>
                         </div>
-                                    </div>
+                    <?php endif; ?>
+                </div>
             </div>
+                <!-- Cards Section to add to the Dashboard -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <i data-lucide="credit-card" class="h-5 w-5 text-gray-500 mr-2"></i>
+                        <h3 class="text-lg font-medium text-gray-900">Your Cards</h3>
+                    </div>
+                    <a href="cards.php" class="text-sm font-medium text-primary-600 hover:text-primary-500 flex items-center">
+                        View all <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="p-6">
+                                <div class="py-8 flex flex-col items-center justify-center text-center">
+                            <div class="bg-gray-50 rounded-full p-3 mb-4">
+                                <i data-lucide="credit-card" class="h-8 w-8 text-gray-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">No cards yet</h3>
+                            <p class="text-gray-500 text-sm mt-2 mb-4 max-w-md">
+                                You haven't applied for any virtual cards yet. Apply for a new card to get started with secure online payments.
+                            </p>
+                            <a href="cards.php?type=apply" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Apply for Card
+                            </a>
+                        </div>
+                        </div>
+            </div>
+
+
         </div>
 
         <!-- Right Column - Stats and Notices -->

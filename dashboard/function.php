@@ -29,5 +29,15 @@ $user = $result_user->fetch_assoc();
 
 $user_email = $user["email"];
 
+$userId = $user['id'];
 
+$txQuery = mysqli_query(
+    $conn,
+    "SELECT * FROM history 
+     WHERE client_id = '{$userId}' 
+     ORDER BY created_at DESC 
+     LIMIT 5"
+);
+
+$hasTransactions = mysqli_num_rows($txQuery) > 0;
 ?>

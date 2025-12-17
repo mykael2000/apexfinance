@@ -13,7 +13,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Account Verification</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Account Verification</span>
             </div>
@@ -122,16 +122,16 @@
                         </div>
                         
                         <div class="flex flex-wrap gap-4 justify-center sm:justify-start">
-                            <a href="https://apexfinancecredit.com/dashboard/kyc-form" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200">
+                            <a href="kyc-form.php" class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200">
                                 <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i>
                                 I Accept & Proceed to Verification
                             </a>
                             
-                            <a href="https://apexfinancecredit.com/logout" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <a href="logout.php" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i data-lucide="x-circle" class="h-4 w-4 mr-2 text-gray-500"></i>
                                 Decline
                             </a>
-                            <form id="logout-form" action="https://apexfinancecredit.com/logout" method="POST" class="hidden">
+                            <form id="logout-form" action="logout.php" method="POST" class="hidden">
                                 <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">
                             </form>
                         </div>
