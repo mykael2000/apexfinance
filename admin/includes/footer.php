@@ -2,7 +2,7 @@
     <div class="pull-right hidden-xs">
         <b>Version</b> 2.0
     </div>
-    <strong>Copyright &copy; Coinacko.</strong> All
+    <strong>Copyright &copy; Apexfinancecredit.</strong> All
     rights reserved.
 </footer>
 </div><!-- ./wrapper -->
