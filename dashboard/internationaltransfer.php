@@ -1,4 +1,166 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $method      = $_POST['withdrawMethod'] ?? '';
+$amount      = floatval($_POST['amount'] ?? 0);
+$pin         = $_POST['pin'] ?? '';
+$description = trim($_POST['Description'] ?? '');
+
+if ($amount <= 0) {
+    $_SESSION['error'] = "Invalid transfer amount.";
+    header("Location: internationaltransfer.php");
+    exit;
+}
+
+if ($amount > $user['total_balance']) {
+    $_SESSION['error'] = "Insufficient balance.";
+    header("Location: internationaltransfer.php");
+    exit;
+}
+
+/* --------------------------
+   VERIFY TRANSACTION PIN
+---------------------------*/
+if ($pin !== $user['pin']) {
+    $_SESSION['error'] = "Incorrect transaction PIN.";
+    header("Location: internationaltransfer.php");
+    exit;
+}
+
+/* --------------------------
+   BUILD DETAILS (JSON SAFE)
+---------------------------*/
+$details = [];
+
+switch ($method) {
+
+    case 'Wire Transfer':
+        $details = [
+            'account_name'   => $_POST['accountname'] ?? '',
+            'account_number' => $_POST['accountnumber'] ?? '',
+            'bank_name'      => $_POST['bankname'] ?? '',
+            'bank_address'   => $_POST['bankaddress'] ?? '',
+            'account_type'   => $_POST['Accounttype'] ?? '',
+            'country'        => $_POST['country'] ?? '',
+            'swift'          => $_POST['swiftcode'] ?? '',
+            'iban'           => $_POST['iban'] ?? '',
+        ];
+        break;
+
+    case 'Cryptocurrency':
+        $details = [
+            'currency' => $_POST['cryptoCurrency'] ?? '',
+            'network'  => $_POST['cryptoNetwork'] ?? '',
+            'wallet'   => $_POST['walletAddress'] ?? '',
+        ];
+        break;
+
+    case 'PayPal':
+        $details = ['email' => $_POST['paypalEmail'] ?? ''];
+        break;
+
+    case 'Wise Transfer':
+        $details = [
+            'name'    => $_POST['wiseFullName'] ?? '',
+            'email'   => $_POST['wiseEmail'] ?? '',
+            'country' => $_POST['wiseCountry'] ?? '',
+        ];
+        break;
+
+    case 'Skrill':
+        $details = [
+            'email' => $_POST['skrillEmail'] ?? '',
+            'name'  => $_POST['skrillFullName'] ?? '',
+        ];
+        break;
+
+    case 'Venmo':
+        $details = [
+            'username' => $_POST['venmoUsername'] ?? '',
+            'phone'    => $_POST['venmoPhone'] ?? '',
+        ];
+        break;
+
+    case 'Zelle':
+        $details = [
+            'email' => $_POST['zelleEmail'] ?? '',
+            'phone' => $_POST['zellePhone'] ?? '',
+            'name'  => $_POST['zelleName'] ?? '',
+        ];
+        break;
+
+    case 'Cash App':
+        $details = [
+            'cashtag' => $_POST['cashAppTag'] ?? '',
+            'name'    => $_POST['cashAppFullName'] ?? '',
+        ];
+        break;
+
+    case 'Revolut':
+        $details = [
+            'name'  => $_POST['revolutFullName'] ?? '',
+            'email' => $_POST['revolutEmail'] ?? '',
+            'phone' => $_POST['revolutPhone'] ?? '',
+        ];
+        break;
+
+    case 'Alipay':
+        $details = [
+            'id'   => $_POST['alipayId'] ?? '',
+            'name' => $_POST['alipayFullName'] ?? '',
+        ];
+        break;
+
+    case 'WeChat Pay':
+        $details = [
+            'id'   => $_POST['wechatId'] ?? '',
+            'name' => $_POST['wechatName'] ?? '',
+        ];
+        break;
+
+    default:
+        $_SESSION['error'] = "Invalid withdrawal method.";
+        header("Location: internationaltransfer.php");
+        exit;
+}
+
+$details_json = json_encode($details, JSON_UNESCAPED_UNICODE);
+
+/* --------------------------
+   CREATE TRANSACTION
+---------------------------*/
+$tranx_id = strtoupper(uniqid("TX"));
+
+$stmt = mysqli_prepare($conn, "
+    INSERT INTO history 
+    (client_id, tranx_id, type, amount, details, description, status, created_at)
+    VALUES (?, ?, 'Debit', ?, ?, ?, 'Pending', NOW())
+");
+
+mysqli_stmt_bind_param(
+    $stmt,
+    "isdss",
+    $user_id,
+    $tranx_id,
+    $amount,
+    $details_json,
+    $description
+);
+
+mysqli_stmt_execute($stmt);
+
+/* --------------------------
+   SUCCESS
+---------------------------*/
+$_SESSION['success'] = "Transfer submitted successfully and is pending approval.";
+header("Location: accounthistory.php");
+exit;
+
+
+}
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -108,7 +270,7 @@
     },
     
     validateAmount() {
-        const maxBalance = 0;
+        const maxBalance = <?php echo $user['total_balance']; ?>;
         if (this.amount > maxBalance) {
             this.amount = maxBalance;
         }
@@ -358,7 +520,7 @@
 
             <!-- Form Content -->
             <div class="p-6 md:p-8 pb-14">
-                <form action="https://apexfinancecredit.com/dashboard/internationaltransfer" method="post" id="internationalTransferForm" @submit.prevent="previewTransfer()">
+                <form action="internationaltransfer.php" method="post" id="internationalTransferForm" @submit.prevent="previewTransfer()">
                     <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                    <input type="hidden" name="withdrawMethod" :value="withdrawMethod">
 
                     <!-- Amount Input with Currency (Enhanced) -->
@@ -375,7 +537,7 @@
                                 x-model="amount"
                                 @input="validateAmount()"
                                 min="1" 
-                                max="0"
+                                max="<?php echo $user['total_balance']; ?>"
                                 step="any"
                                 class="block w-full pl-12 pr-20 py-4 border-2 border-primary-100 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-2xl font-bold"
                                 placeholder="0.00"
@@ -386,14 +548,14 @@
                             </div>
                         </div>
                         <div class="mt-3 flex items-center justify-between">
-                            <p class="text-sm text-gray-500">Available balance: <span class="font-medium">$0.00</span></p>
+                            <p class="text-sm text-gray-500">Available balance: <span class="font-medium">$<?php echo $user['total_balance']; ?></span></p>
                             
                             <!-- Quick Amount Buttons -->
                             <div class="flex space-x-2">
                                 <button type="button" @click="amount = '100'" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition-colors">$100</button>
                                 <button type="button" @click="amount = '500'" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition-colors">$500</button>
                                 <button type="button" @click="amount = '1000'" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition-colors">$1000</button>
-                                <button type="button" @click="amount = 0" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition-colors">Max</button>
+                                <button type="button" @click="amount = <?php echo $user['total_balance']; ?>" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium text-gray-700 transition-colors">Max</button>
                             </div>
                         </div>
                     </div>
@@ -1633,7 +1795,7 @@
                         </div>
                         <div class="flex justify-between items-center pt-1">
                             <span class="font-medium text-gray-500">New Balance After Transfer</span>
-                            <span class="text-gray-900" x-text="'$' + (0 - parseFloat(amount)).toFixed(2)"></span>
+                            <span class="text-gray-900" x-text="'$' + (<?php echo $user['total_balance']; ?> - parseFloat(amount)).toFixed(2)"></span>
                         </div>
                     </div>
                 </div>
@@ -1656,7 +1818,7 @@
                         ></span>
                     </button>
                     <a 
-                        href="https://apexfinancecredit.com/dashboard" 
+                        href="index.php" 
                         class="w-full inline-flex items-center justify-center px-6 py-3.5 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                     >
                         <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
@@ -1778,7 +1940,7 @@
                                 </div>
                                 <div class="flex justify-between text-sm mt-1">
                                     <span class="font-medium text-gray-500">New Balance</span>
-                                    <span class="text-gray-900" x-text="'$' + (0 - parseFloat(amount)).toFixed(2)"></span>
+                                    <span class="text-gray-900" x-text="'$' + (<?php echo $user['total_balance']; ?> - parseFloat(amount)).toFixed(2)"></span>
                                 </div>
                             </div>
                         </div>

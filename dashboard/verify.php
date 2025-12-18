@@ -1,4 +1,7 @@
-<?php include("header.php"); ?>
+<?php include("header.php"); 
+
+$kycStatus = $user['kyc_status'] ?? 'unverified';
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -29,7 +32,66 @@
                 <h2 class="text-xl font-semibold text-gray-900">Verify Your Identity</h2>
             </div>
         </div>
-        
+        <?php if ($kycStatus === 'pending'): ?>
+
+        <div class="max-w-3xl mx-auto mt-16 bg-white rounded-xl shadow-md border border-yellow-200 p-8 text-center">
+            <i data-lucide="clock" class="h-16 w-16 text-yellow-500 mx-auto mb-4"></i>
+
+            <h2 class="text-2xl font-semibold text-gray-900 mb-2">
+                KYC Verification Pending
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                Your documents have been submitted successfully and are currently under review.
+                This process usually takes <strong>24 – 48 hours</strong>.
+            </p>
+
+            <span class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                        bg-yellow-100 text-yellow-800">
+                Status: Pending Review
+            </span>
+        </div>
+
+        <?php endif; ?>
+
+        <?php if ($kycStatus === 'verified'): ?>
+
+            <div class="max-w-3xl mx-auto mt-16 bg-white rounded-xl shadow-md border border-green-200 p-8 text-center">
+                <i data-lucide="check-circle" class="h-16 w-16 text-green-600 mx-auto mb-4"></i>
+
+                <h2 class="text-2xl font-semibold text-gray-900 mb-2">
+                    KYC Verified
+                </h2>
+
+                <p class="text-gray-600 mb-6">
+                    Your account has been successfully verified.
+                    You now have full access to all features.
+                </p>
+
+                <span class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                            bg-green-100 text-green-800">
+                    Status: Verified
+                </span>
+
+                <div class="mt-6">
+                    <a href="index.php"
+                    class="inline-flex items-center px-5 py-2 rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+
+        <?php endif; ?>
+
+        <?php if ($kycStatus === 'rejected'): ?>
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <p class="text-sm text-red-700">
+                Your previous verification was rejected. Please review your details and resubmit.
+            </p>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($kycStatus === 'unverified' || $kycStatus === 'rejected'): ?>
         <!-- Form Content -->
         <div class="p-6">
             <div class="max-w-8xl mx-auto">
@@ -138,6 +200,7 @@
                     </div>
                             </div>
         </div>
+        <?php endif; ?>
     </div>
     
     <!-- Support Section -->

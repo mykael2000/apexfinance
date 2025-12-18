@@ -359,10 +359,6 @@ $query = mysqli_query($conn, $sql);
                             </li>
                             <li><a href="editusers.php"><i class="fa fa-circle-o"></i>Edit users</a>
                             </li>
-                            <li><a href="userdepo.php"><i class="fa fa-circle-o"></i>User Deposits</a></li>
-
-                            <li><a href="cryptowith.php"><i class="fa fa-circle-o"></i>Withdrawals</a></li>
-                            <li><a href="userkyc.php"><i class="fa fa-circle-o"></i>Users KYC</a></li>
 
                         </ul>
                     </li>
@@ -375,48 +371,35 @@ $query = mysqli_query($conn, $sql);
                         </a>
                     </li>
                     <li class="treeview">
-                        <a href="addProfit.php">
+                        <a href="transfers.php">
                             <i class="fa fa-files-o"></i>
-                            <span>Add Earnings</span>
+                            <span>User Transfers</span>
 
                         </a>
                     </li>
                     <li class="treeview">
-                        <a href="addBonus.php">
+                        <a href="deposits.php">
                             <i class="fa fa-files-o"></i>
-                            <span>Add Bonus</span>
+                            <span>User Deposits</span>
 
                         </a>
                     </li>
                     <li class="treeview">
-                        <a href="btcwallet.php">
+                        <a href="kyclist.php">
                             <i class="fa fa-files-o"></i>
-                            <span>Edit BTC Wallet</span>
+                            <span>KYC Data</span>
 
                         </a>
                     </li>
+                   
                     <li class="treeview">
-                        <a href="ethwallet.php">
+                        <a href="address.php">
                             <i class="fa fa-files-o"></i>
-                            <span>Edit ETH Wallet</span>
+                            <span>Edit Payment Address</span>
 
                         </a>
                     </li>
-                    <li class="treeview">
-                        <a href="usdtwallet.php">
-                            <i class="fa fa-files-o"></i>
-                            <span>Edit USDT Wallet</span>
-
-                        </a>
-                    </li>
-                    <li class="treeview">
-                        <a href="bnbwallet.php">
-                            <i class="fa fa-files-o"></i>
-                            <span>Edit BNB Wallet</span>
-
-                        </a>
-                    </li>
-
+                    
 
 
                 </ul>

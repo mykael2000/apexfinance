@@ -1,4 +1,13 @@
-<?php include("header.php"); ?>
+<?php include("header.php"); 
+$txQuery = mysqli_query(
+    $conn,
+    "SELECT * FROM history 
+     WHERE client_id = '{$userId}' 
+     ORDER BY created_at DESC"
+);
+
+$hasTransactions = mysqli_num_rows($txQuery) > 0;
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -13,7 +22,7 @@
         </button>
     </div>
     <div class="text-xs text-blue-800 space-y-1">
-        <p>Route URL: https://apexfinancecredit.com/dashboard/export-transactions</p>
+        <p>Route URL: export-transactions.php</p>
         <p>CSRF Token: <span id="csrf-token-debug">MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb</span></p>
         <p>Meta tag present: <span id="meta-tag-debug">Unknown</span></p>
         <div>
@@ -36,7 +45,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Transactions</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Transactions</span>
             </div>
@@ -74,34 +83,104 @@
     <!-- Transactions Card -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference ID</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scope</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+            <?php if ($hasTransactions): ?>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <?php while ($tx = mysqli_fetch_assoc($txQuery)): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-sm font-medium">
+                                                #<?= htmlspecialchars($tx['tranx_id']) ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-sm font-medium
+                                                <?= $tx['type'] === 'Credit' ? 'text-green-600' : 'text-red-600' ?>">
+                                                <?= htmlspecialchars($tx['type']) ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            $<?= number_format($tx['amount'], 2) ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            <?php
+                                            $rawDetails = $tx['details'];
+
+                                            // Try decoding
+                                            $decoded = json_decode($rawDetails, true);
+
+                                            // Check if it's valid JSON
+                                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                                // JSON DETAILS (crypto, international, etc.)
+                                                foreach ($decoded as $key => $value) {
+                                                    echo '<div>';
+                                                    echo '<span class="font-medium">'
+                                                        . ucfirst(str_replace('_', ' ', $key)) . ':</span> ';
+                                                    echo htmlspecialchars($value);
+                                                    echo '</div>';
+                                                }
+                                            } else {
+                                                // NORMAL STRING (local transfer)
+                                                echo htmlspecialchars($rawDetails);
+                                            }
+                                            ?>
+                                            </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-sm font-medium">
+                                                <?= htmlspecialchars($tx['description']) ?>
+                                            </span>
+                                        </td>
                                         
-                    
-                                        <tr>
-                        <td colspan="9" class="px-6 py-10 text-center">
-                            <div class="flex flex-col items-center justify-center">
-                                <i data-lucide="inbox" class="h-16 w-16 text-gray-300 mb-4"></i>
-                                <p class="text-lg font-medium text-gray-600">No transactions found</p>
-                                <p class="text-sm text-gray-500 mt-1 mb-4">Try adjusting your search or filter parameters</p>
-                            </div>
-                        </td>
-                    </tr>
-                                    </tbody>
-            </table>
+
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium
+                                                <?php
+                                                    echo match ($tx['status']) {
+                                                        'Completed' => 'bg-green-100 text-green-700',
+                                                        'Pending'   => 'bg-yellow-100 text-yellow-700',
+                                                        'Failed'    => 'bg-red-100 text-red-700',
+                                                        default     => 'bg-gray-100 text-gray-700'
+                                                    };
+                                                ?>">
+                                                <?= htmlspecialchars($tx['status']) ?>
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?= date('M d, Y', strtotime($tx['created_at'])) ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+
+                    <?php else: ?>
+                        <!-- EMPTY STATE -->
+                        <div class="py-12 flex flex-col items-center justify-center">
+                            <i data-lucide="inbox" class="h-16 w-16 text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-600">No transactions yet</p>
+                            <p class="text-sm text-gray-500 mt-1 mb-4">
+                                Your transaction history will appear here
+                            </p>
+                            <a href="deposits.php"
+                            class="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium
+                                    text-white bg-primary-600 hover:bg-primary-700">
+                                Make your first deposit
+                            </a>
+                        </div>
+                    <?php endif; ?>
         </div>
     </div>
 
@@ -316,9 +395,9 @@
                             x-model="exportAs"
                             class="block w-full border border-gray-200 rounded-lg p-2.5 focus:ring-primary-500 focus:border-primary-500">
                             <option value="">How do you want to receive this file?</option>
-                            <option value="view">Preview statement</option>
+                            <!-- <option value="view">Preview statement</option> -->
                             <option value="download">Download file</option>
-                            <option value="email">Send file to email</option>
+                            <!-- <option value="email">Send file to email</option> -->
                         </select>
                     </div>
                     
@@ -334,7 +413,7 @@
                                     <i data-lucide="layout-dashboard" class="h-5 w-5 text-gray-500"></i>
                                 </div>
                             </div>
-                            <div 
+                            <!-- <div 
                                 @click="statementStyle = 'classic'" 
                                 :class="{'ring-2 ring-primary-500 bg-primary-50': statementStyle === 'classic'}"
                                 class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors">
@@ -342,7 +421,7 @@
                                 <div class="h-12 bg-gray-200 rounded flex items-center justify-center">
                                     <i data-lucide="file-text" class="h-5 w-5 text-gray-500"></i>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -398,7 +477,7 @@
                     
                     // Handle view option - open in new tab
                     if (this.exportAs === 'view') {
-                        const url = new URL("https://apexfinancecredit.com/dashboard/transactions/export", window.location.origin);
+                        const url = new URL("export", window.location.origin);
                         
                         // Add parameters
                         url.searchParams.append('exportType', this.exportType);
@@ -447,7 +526,7 @@
                             // For direct downloads, create a form and submit it directly
                             const form = document.createElement('form');
                             form.method = 'POST';
-                            form.action = 'https://apexfinancecredit.com/dashboard/export-transactions';
+                            form.action = 'export-transactions.php';
                             form.style.display = 'none';
                             
                             // Add CSRF token
@@ -488,9 +567,9 @@
                             }, 1000);
                         } else {
                             // For email exports, use fetch API
-                            console.log('Sending email export request to:', 'https://apexfinancecredit.com/dashboard/export-transactions');
+                            console.log('Sending email export request to:', 'export-transactions.php');
                             
-                            fetch('https://apexfinancecredit.com/dashboard/export-transactions', {
+                            fetch('export-transactions.php', {
                                 method: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': csrfToken,
@@ -621,7 +700,7 @@
                 }
                 
                 // Make a simple ping request to the export endpoint
-                fetch('https://apexfinancecredit.com/dashboard/export-transactions', {
+                fetch('export-transactions.php', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,

@@ -27,7 +27,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Deposit Funds</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Deposit</span>
             </div>
@@ -56,11 +56,22 @@
                     </svg>
                 </div>
             </div>
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-5 w-5 mr-2"></i>
+                        <span class="text-sm font-medium">
+                            <?= htmlspecialchars($_SESSION['error']) ?>
+                        </span>
+                    </div>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
 
             <!-- Form Content -->
             <div class="p-6 md:p-8 pb-14">
-                <form action="https://apexfinancecredit.com/dashboard/newdeposit" method="post" id="depositForm" @submit.prevent="submitForm()">
-                    <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">
+                <form action="newdeposit.php" method="post" id="depositForm" @submit.prevent="submitForm()">
+                   
                     <!-- Payment Method Selection -->
                     <div class="mb-8">
                         <label class="block text-sm font-medium text-gray-700 mb-3">Select Deposit Method</label>
@@ -218,7 +229,7 @@
                             ></span>
                         </button>
                         <a 
-                            href="https://apexfinancecredit.com/dashboard" 
+                            href="index.php" 
                             class="w-full inline-flex items-center justify-center px-6 py-3.5 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                         >
                             <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>

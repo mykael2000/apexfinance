@@ -1,4 +1,14 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+$txQuery = mysqli_query(
+    $conn,
+    "SELECT * FROM history 
+     WHERE client_id = '{$userId}' 
+     ORDER BY created_at DESC LIMIT 5"
+);
+
+$hasTransactions = mysqli_num_rows($txQuery) > 0;
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">

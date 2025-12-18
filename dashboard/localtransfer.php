@@ -1,4 +1,87 @@
-<?php include("header.php"); ?>
+<?php include("header.php"); 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $amount        = floatval($_POST['amount']);
+$accountname   = trim($_POST['accountname']);
+$accountnumber = trim($_POST['accountnumber']);
+$bankname      = trim($_POST['bankname']);
+$accounttype   = trim($_POST['Accounttype']);
+$description   = trim($_POST['Description'] ?? '');
+$pin           = trim($_POST['pin']);
+
+if ($amount <= 0 || !$accountname || !$accountnumber || !$bankname || !$pin) {
+    $_SESSION['error'] = "Invalid transfer details.";
+    header("Location: localtransfer.php");
+    exit;
+}
+
+/* -------------------------
+   FETCH USER & VERIFY PIN
+--------------------------*/
+$stmt = $conn->prepare("
+    SELECT username, email, pin, total_balance
+    FROM users
+    WHERE id = ?
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+
+if (!$user) {
+    $_SESSION['error'] = "User not found.";
+    header("Location: localtransfer.php");
+    exit;
+}
+
+// Verify PIN (IMPORTANT)
+if ($pin !== $user['pin']) {
+    $_SESSION['error'] = "Invalid transaction PIN.";
+    header("Location: localtransfer.php");
+    exit;
+}
+
+// Check balance
+if ($amount > $user['total_balance']) {
+    $_SESSION['error'] = "Insufficient balance.";
+    header("Location: localtransfer.php");
+    exit;
+}
+
+/* -------------------------
+   INSERT INTO HISTORY
+--------------------------*/
+$tranx_id = random_int(100000000000, 999999999999);
+
+$details = "Transfer to {$accountname} ({$bankname}) - {$accountnumber}";
+
+$stmt = $conn->prepare("
+    INSERT INTO history 
+    (client_id, username, email, tranx_id, amount, details, type, status, description, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'Debit', 'Pending', ?, NOW())
+");
+
+$stmt->bind_param(
+    "isssdss",
+    $user_id,
+    $user['username'],
+    $user['email'],
+    $tranx_id,
+    $amount,
+    $details,
+    $description
+);
+
+$stmt->execute();
+
+/* -------------------------
+   SUCCESS → HISTORY PAGE
+--------------------------*/
+$_SESSION['success'] = "Transfer submitted successfully. Pending approval.";
+header("Location: accounthistory.php");
+exit;
+}
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -16,7 +99,7 @@
     showPreview: false,
     
     validateAmount() {
-        const maxBalance = 0;
+        const maxBalance = <?php echo $user['total_balance']; ?>;
         if (this.amount > maxBalance) {
             this.amount = maxBalance;
         }
@@ -29,7 +112,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Local Transfer</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Local Transfer</span>
             </div>
@@ -61,8 +144,44 @@
 
             <!-- Form Content -->
             <div class="p-6 md:p-8">
-                <form @submit.prevent="showPreview = true" id="transferForm">
-                    <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                    
+                <?php if (!empty($_SESSION['error'])): ?>
+    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 flex items-start">
+        <i data-lucide="alert-circle" class="h-5 w-5 text-red-600 mt-0.5 mr-3"></i>
+        <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">
+                <?= htmlspecialchars($_SESSION['error']) ?>
+            </p>
+        </div>
+        <button 
+            onclick="this.parentElement.remove()" 
+            class="text-red-500 hover:text-red-700"
+        >
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['success'])): ?>
+    <div class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 flex items-start">
+        <i data-lucide="check-circle" class="h-5 w-5 text-green-600 mt-0.5 mr-3"></i>
+        <div class="flex-1">
+            <p class="text-sm font-medium text-green-800">
+                <?= htmlspecialchars($_SESSION['success']) ?>
+            </p>
+        </div>
+        <button 
+            onclick="this.parentElement.remove()" 
+            class="text-green-500 hover:text-green-700"
+        >
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
+                <form action="" method="post" @submit.prevent="showPreview = true" id="transferForm">
+                               
                     <!-- Balance Information Card -->
                     <div class="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100 mb-6 shadow-sm">
                         <div class="flex items-center justify-between">
@@ -72,7 +191,7 @@
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Available Balance</p>
-                                    <p class="text-xl font-bold text-gray-900">$0.00</p>
+                                    <p class="text-xl font-bold text-gray-900">$<?php echo number_format($user['total_balance'], 2, '.',','); ?></p>
                                 </div>
                             </div>
                             <div class="hidden sm:block">
@@ -95,7 +214,7 @@
                                 x-model="amount"
                                 @input="validateAmount()"
                                 min="1" 
-                                max="0"
+                                max="<?php echo $user['total_balance']; ?>"
                                 step="any"
                                 class="block w-full pl-12 pr-20 py-4 border-2 border-primary-100 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-2xl font-bold"
                                 placeholder="0.00"
@@ -111,7 +230,7 @@
                             <button type="button" @click="amount = '100'" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors">$100</button>
                             <button type="button" @click="amount = '500'" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors">$500</button>
                             <button type="button" @click="amount = '1000'" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors">$1000</button>
-                            <button type="button" @click="amount = Math.floor(0)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors">All</button>
+                            <button type="button" @click="amount = <?php echo $user['total_balance']; ?>" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700 transition-colors">All</button>
                         </div>
                     </div>
                 
@@ -298,7 +417,7 @@
                                 
                                 <div class="flex justify-between items-center mt-1">
                                     <span class="text-gray-500">New Balance After Transfer</span>
-                                    <span class="font-medium text-gray-700">$<span x-text="(0 - parseFloat(amount || 0)).toFixed(2)"></span></span>
+                                    <span class="font-medium text-gray-700">$<span x-text="(<?php echo $user['total_balance']; ?> - parseFloat(amount || 0)).toFixed(2)"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -439,7 +558,7 @@
                                 
                                 <div class="flex justify-between mt-1">
                                     <span class="text-gray-500">New Balance After Transfer</span>
-                                    <span class="font-medium text-gray-900">$<span x-text="(0 - parseFloat(amount)).toFixed(2)"></span></span>
+                                    <span class="font-medium text-gray-900">$<span x-text="(<?php echo $user['total_balance']; ?> - parseFloat(amount)).toFixed(2)"></span></span>
                                 </div>
                             </div>
                         </div>
@@ -464,8 +583,8 @@
                             Cancel
                         </button>
                         
-                        <form action="https://apexfinancecredit.com/dashboard/localtransfer" method="post" class="w-full" id="transferForm">
-                            <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                            <input type="hidden" name="amount" :value="amount">
+                        <form action="" method="post" class="w-full" id="transferForm">
+                            <input type="hidden" name="amount" :value="amount">
                             <input type="hidden" name="accountname" :value="accountname">
                             <input type="hidden" name="accountnumber" :value="accountnumber">
                             <input type="hidden" name="bankname" :value="bankname">

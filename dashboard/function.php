@@ -6,9 +6,9 @@ session_start();
 ob_start();
 
 
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if(empty($_SESSION['user_id'])){
     header("location: ../login.php"); 
@@ -31,13 +31,4 @@ $user_email = $user["email"];
 
 $userId = $user['id'];
 
-$txQuery = mysqli_query(
-    $conn,
-    "SELECT * FROM history 
-     WHERE client_id = '{$userId}' 
-     ORDER BY created_at DESC 
-     LIMIT 5"
-);
-
-$hasTransactions = mysqli_num_rows($txQuery) > 0;
 ?>

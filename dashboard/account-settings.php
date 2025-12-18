@@ -1,4 +1,54 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $newPin          = trim($_POST['pin'] ?? '');
+    $currentPassword = trim($_POST['current_password'] ?? '');
+
+    if (strlen($newPin) < 4) {
+        $_SESSION['error'] = "Transaction PIN must be at least 4 digits.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    // Fetch user
+    $stmt = $conn->prepare("
+        SELECT password 
+        FROM users 
+        WHERE id = ?
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+
+    if (!$user) {
+        $_SESSION['error'] = "User not found.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    // Verify current password
+    if (!password_verify($currentPassword, $user['password'])) {
+        $_SESSION['error'] = "Incorrect current password.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+  
+    // Update PIN
+    $update = $conn->prepare("
+        UPDATE users 
+        SET pin = ?
+        WHERE id = ?
+    ");
+    $update->bind_param("si", $newPin, $user_id);
+    $update->execute();
+
+    $_SESSION['success'] = "Transaction PIN updated successfully.";
+    header("Location: account-seetings.php");
+    exit;
+}
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -16,7 +66,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Account Settings</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Settings</span>
             </div>
@@ -34,7 +84,7 @@
                     <div class="relative mb-3">
                         <div class="h-24 w-24 rounded-full border-4 border-white/50 overflow-hidden bg-white shadow-md">
                             <img
-                                src="https://apexfinancecredit.com/storage/app/public/photos"
+                                src="../storage/app/public/photos"
                                 class="h-full w-full object-cover"
                                 alt="<?php echo $user['firstname']; ?>"
                                 onerror="this.src='https://ui-avatars.com/api/?name=<?php echo $user['firstname']; ?>&background=random'"
@@ -66,7 +116,7 @@
                 <div class="p-4">
                     <nav class="space-y-1">
                         <a
-                            href="https://apexfinancecredit.com/dashboard/account-settings"
+                            href="account-settings.php"
                             class="flex items-center px-4 py-3 rounded-lg bg-primary-50 text-gray-700 font-medium"
                         >
                             <i data-lucide="user" class="h-5 w-5 mr-3 text-gray-600"></i>
@@ -74,7 +124,7 @@
                         </a>
 
                         <a
-                            href="https://apexfinancecredit.com/dashboard/editpass"
+                            href="editpass.php"
                             class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
                         >
                             <i data-lucide="shield" class="h-5 w-5 mr-3 text-gray-500"></i>
@@ -126,10 +176,29 @@
                         Your personal information and account details
                     </p>
                 </div>
+                <?php if (!empty($_SESSION['error'])): ?>
+                    <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 flex items-start">
+                        <i data-lucide="alert-circle" class="h-5 w-5 text-red-600 mr-3 mt-0.5"></i>
+                        <p class="text-sm text-red-800 font-medium">
+                            <?= htmlspecialchars($_SESSION['error']) ?>
+                        </p>
+                    </div>
+                    <?php unset($_SESSION['error']); ?>
+                <?php endif; ?>
+
+                <?php if (!empty($_SESSION['success'])): ?>
+                    <div class="mb-4 rounded-lg bg-green-50 border border-green-200 p-4 flex items-start">
+                        <i data-lucide="check-circle" class="h-5 w-5 text-green-600 mr-3 mt-0.5"></i>
+                        <p class="text-sm text-green-800 font-medium">
+                            <?= htmlspecialchars($_SESSION['success']) ?>
+                        </p>
+                    </div>
+                    <?php unset($_SESSION['success']); ?>
+                <?php endif; ?>
 
                 <!-- Form Content -->
                 <div class="p-6">
-                    <form action="#" method="post">
+                    <form action="" method="post">
                         <!-- Two Column Layout for Name -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                             <!-- First Name -->
@@ -415,7 +484,7 @@
                 </div>
 
                 <form action="" method="post" class="space-y-5">
-                    <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                    <input type="hidden" name="_method" value="PUT">
+                 
                     <!-- New Transaction PIN -->
                     <div>
                         <label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
