@@ -494,6 +494,10 @@
                         <i data-lucide="help-circle" class="mr-3 h-5 w-5 text-gray-500"></i>
                         Support Ticket
                     </a>
+                    <a href="my-tickets.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="help-circle" class="mr-3 h-5 w-5 text-gray-500"></i>
+                        My Tickets
+                    </a>
                 </nav>
             </div>
 

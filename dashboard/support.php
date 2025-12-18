@@ -1,4 +1,47 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $subject  = trim($_POST['subject'] ?? '');
+    $priority = $_POST['selectPriority'] ?? 'low';
+    $message  = trim($_POST['message'] ?? '');
+    $email    = $_POST['email'] ?? '';
+    $name     = $_POST['name'] ?? '';
+
+    if ($subject === '' || $message === '') {
+        $_SESSION['error'] = "All fields are required.";
+    } else {
+
+        $stmt = $conn->prepare("
+            INSERT INTO support_tickets 
+            (user_id, name, email, subject, priority, message) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "isssss",
+            $user_id,
+            $name,
+            $email,
+            $subject,
+            $priority,
+            $message
+        );
+
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "Your support ticket has been submitted successfully.";
+        } else {
+            $_SESSION['error'] = "Unable to submit ticket. Please try again.";
+        }
+
+        $stmt->close();
+    }
+
+    header("Location: support.php");
+    exit;
+}
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -6,14 +49,24 @@
                         
 <div class="container mx-auto px-4 py-6 max-w-4xl">
     <!-- Alerts -->
-            <div>
-    </div>
+            <?php if (!empty($_SESSION['error'])): ?>
+            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm">
+                <?= htmlspecialchars($_SESSION['error']) ?>
+            </div>
+            <?php unset($_SESSION['error']); endif; ?>
+
+            <?php if (!empty($_SESSION['success'])): ?>
+            <div class="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-sm">
+                <?= htmlspecialchars($_SESSION['success']) ?>
+            </div>
+            <?php unset($_SESSION['success']); endif; ?>
+
     <!-- Page Header with Breadcrumbs -->
     <div class="flex flex-col mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Support Center</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Support</span>
             </div>
@@ -42,8 +95,8 @@
         
         <!-- Form Content -->
         <div class="p-6">
-            <form action="https://apexfinancecredit.com/sendcontact" method="post" class="space-y-6">
-                <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                
+            <form action="" method="post" class="space-y-6">
+                              
                 <!-- Hidden Fields -->
                 <input type="hidden" name="email" value="<?php echo $user['email']; ?>">
                 <input type="hidden" name="name" value="<?php echo $user['firstname']; ?>" />

@@ -419,7 +419,13 @@ $query = mysqli_query($conn, $sql);
 
                         </a>
                     </li>
-                    
+                    <li class="treeview">
+                        <a href="tickets.php">
+                            <i class="fa fa-files-o"></i>
+                            <span>Support Requests</span>
+
+                        </a>
+                    </li>
 
 
                 </ul>
