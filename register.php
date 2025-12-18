@@ -82,7 +82,7 @@ if (isset($_POST['register'])) {
             $message = "<div class='bg-red-100 border-l-4 border-red-500 text-red-800 p-2 rounded-md shadow-sm'>Database error (user insertion): " . $conn->error . "</div>";
         } else {
             // Include ref_by in binding
-            $stmt_insert_user->bind_param("ssssssssss", $firstname, $middlename, $lastname, $account_id, $username, $email, $phone, $country, $hashedPassword, $account_type, $currency);
+            $stmt_insert_user->bind_param("sssssssssss", $firstname, $middlename, $lastname, $account_id, $username, $email, $phone, $country, $hashedPassword, $account_type, $currency);
 
             if ($stmt_insert_user->execute()) {
                 // User successfully inserted into DB
