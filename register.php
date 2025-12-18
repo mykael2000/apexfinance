@@ -23,6 +23,7 @@ if (isset($_POST['register'])) {
     $country = trim($_POST['country']);
     $email = trim($_POST["email"]);
     $account_type = $_POST['accounttype'];
+    $currency = "$";
     $phone = trim($_POST["phone"]);
     $password = trim($_POST["password"]);
     $confirmpassword = trim($_POST["password_confirmation"]);
@@ -74,14 +75,14 @@ if (isset($_POST['register'])) {
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
         // Prepare and execute the INSERT statement
-        $stmt_insert_user = $conn->prepare("INSERT INTO users (firstname, middlename, lastname, account_id, username, email, phone, country, password, account_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt_insert_user = $conn->prepare("INSERT INTO users (firstname, middlename, lastname, account_id, username, email, phone, country, password, account_type, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
         // Check if prepare was successful
         if ($stmt_insert_user === false) {
             $message = "<div class='bg-red-100 border-l-4 border-red-500 text-red-800 p-2 rounded-md shadow-sm'>Database error (user insertion): " . $conn->error . "</div>";
         } else {
             // Include ref_by in binding
-            $stmt_insert_user->bind_param("ssssssssss", $firstname, $middlename, $lastname, $account_id, $username, $email, $phone, $country, $hashedPassword, $account_type);
+            $stmt_insert_user->bind_param("ssssssssss", $firstname, $middlename, $lastname, $account_id, $username, $email, $phone, $country, $hashedPassword, $account_type, $currency);
 
             if ($stmt_insert_user->execute()) {
                 // User successfully inserted into DB
