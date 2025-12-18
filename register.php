@@ -93,7 +93,7 @@ if (isset($_POST['register'])) {
                     $mail->Host       = 'smtp.zoho.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = 'support@apexfinancecredit.com'; // Your SMTP username
-                    $mail->Password   = 'OCT3244@DSfdrdv';           // Your SMTP password
+                    $mail->Password   = 'AXP3242dgdhgj@';           // Your SMTP password
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Use SSL implicit TLS
                     $mail->Port       = 465;
 
