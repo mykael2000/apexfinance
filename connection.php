@@ -6,10 +6,10 @@ error_reporting(E_ALL);
 // Database connection (Change credentials accordingly)
         $servername = "localhost";
         //$username = "dualstre_Apex Finance Credit";
-        $username = "dginland_apexfinance";
-        $password = "dginland_apexfinance";
+        $username = "dginland_apex";
+        $password = "dginland_apex";
         //$dbname = "dualstre_Apex Finance Credit";
-        $dbname = "rtxwb3TJqT4YkN9JLjav";
+        $dbname = "56z9Sn6uRMGSrNwtUssk";
 
         $conn = new mysqli($servername, $username, $password, $dbname);
         // if($conn){
