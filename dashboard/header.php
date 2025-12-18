@@ -469,14 +469,18 @@
                         Loan Request
                     </a>
 
+                    <a href="viewloan.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="history" class="mr-3 h-5 w-5 text-gray-500"></i>
+                        Loan History
+                    </a>
+
                     <a href="irs-refund.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50">
                         <i data-lucide="receipt" class="mr-3 h-5 w-5 text-gray-500"></i>
                         IRS Tax Refund
                     </a>
-
-                    <a href="viewloan.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="history" class="mr-3 h-5 w-5 text-gray-500"></i>
-                        Loan History
+                    <a href="irs_list.php" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="receipt" class="mr-3 h-5 w-5 text-gray-500"></i>
+                        IRS Tax Refund History
                     </a>
 
                     <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-6 mb-2">Account</p>

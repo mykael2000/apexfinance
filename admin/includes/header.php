@@ -391,7 +391,20 @@ $query = mysqli_query($conn, $sql);
 
                         </a>
                     </li>
-                   
+                   <li class="treeview">
+                        <a href="loan_list.php">
+                            <i class="fa fa-files-o"></i>
+                            <span>User Loan Requests</span>
+
+                        </a>
+                    </li>
+                    <li class="treeview">
+                        <a href="irs_refunds.php">
+                            <i class="fa fa-files-o"></i>
+                            <span>User IRS Refund Requests</span>
+
+                        </a>
+                    </li>
                     <li class="treeview">
                         <a href="address.php">
                             <i class="fa fa-files-o"></i>

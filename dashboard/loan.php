@@ -1,4 +1,77 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+$hasActiveLoan = false;
+
+$stmt = $conn->prepare("
+    SELECT id 
+    FROM loans 
+    WHERE user_id = ? 
+    AND status IN ('Pending','Approved')
+    LIMIT 1
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows > 0) {
+    $hasActiveLoan = true;
+}
+$stmt->close();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if ($hasActiveLoan) {
+        $_SESSION['error'] = "You already have an active or pending loan.";
+        header("Location: loan.php");
+        exit;
+    }
+
+    $amount   = floatval($_POST['amount'] ?? 0);
+    $duration = intval($_POST['duration'] ?? 0);
+    $facility = trim($_POST['facility'] ?? '');
+    $purpose  = trim($_POST['purpose'] ?? '');
+    $income   = trim($_POST['income'] ?? '');
+
+    if ($amount <= 0 || !$duration || !$facility || !$purpose || !$income) {
+        $_SESSION['error'] = "Please complete all required fields.";
+        header("Location: loan.php");
+        exit;
+    }
+
+    $loan_id = 'LN' . strtoupper(bin2hex(random_bytes(5)));
+
+    $stmt = $conn->prepare("
+        INSERT INTO loans
+        (user_id, username, email, loan_id, amount, duration, facility, purpose, income, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+    ");
+
+    $stmt->bind_param(
+        "isssdisss",
+        $user_id,
+        $user['username'],
+        $user['email'],
+        $loan_id,
+        $amount,
+        $duration,
+        $facility,
+        $purpose,
+        $income
+    );
+
+    if ($stmt->execute()) {
+        $_SESSION['success'] = "Loan application submitted successfully. Pending review.";
+    } else {
+        $_SESSION['error'] = "Unable to submit loan application. Please try again.";
+    }
+
+    $stmt->close();
+    header("Location: loan.php");
+    exit;
+}
+
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -12,7 +85,7 @@
     purpose: '',
     income: '',
     isSubmitting: false,
-    hasActiveLoan: false
+    hasActiveLoan: <?= $hasActiveLoan ? 'true' : 'false' ?>
 }">
     <!-- Alerts -->
             <div>
@@ -22,7 +95,7 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 mb-1">Loan Services</h1>
             <div class="flex items-center text-sm text-gray-500">
-                <a href="https://apexfinancecredit.com/dashboard" class="hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2"></i>
                 <span class="font-medium text-gray-700">Loan Services</span>
             </div>
@@ -40,7 +113,7 @@
                     <h3 class="text-sm font-medium text-yellow-800">Loan Application Restricted</h3>
                     <div class="mt-2 text-sm text-yellow-700">
                         <p>You currently have an active or pending loan application. You cannot apply for a new loan until your current loan is completed or your application is processed.</p>
-                        <p class="mt-2">Please check your <a href="https://apexfinancecredit.com/dashboard/viewloan" class="font-medium underline text-yellow-800 hover:text-yellow-900">existing loans</a> for more information.</p>
+                        <p class="mt-2">Please check your <a href="viewloan.php" class="font-medium underline text-yellow-800 hover:text-yellow-900">existing loans</a> for more information.</p>
                     </div>
                 </div>
             </div>
@@ -69,6 +142,19 @@
                     </svg>
                 </div>
             </div>
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div class="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+                    <?= htmlspecialchars($_SESSION['error']) ?>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
+
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div class="max-w-4xl mx-auto mb-6 bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg">
+                    <?= htmlspecialchars($_SESSION['success']) ?>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
 
             <!-- Loan Information Content -->
             <div class="p-6 md:p-8">
@@ -185,12 +271,12 @@
                         </div>
                     </div>
                     
-                    <div class="mt-4 text-center">
+                    <!-- <div class="mt-4 text-center">
                         <a href="#" class="text-primary-600 hover:text-primary-700 text-sm font-medium inline-flex items-center">
                             View all loan options
                             <i data-lucide="chevron-right" class="h-4 w-4 ml-1"></i>
                         </a>
-                    </div>
+                    </div> -->
                 </div>
                 
                 <!-- How It Works -->
@@ -336,8 +422,8 @@
                     </div>
                 </div>
                 
-                <form action="https://apexfinancecredit.com/dashboard/loan" method="post" x-ref="loanForm" @submit="isSubmitting = true">
-                    <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                    
+                <form action="" method="post" x-ref="loanForm" @submit="isSubmitting = true">
+                
                     <!-- Loan Details Section -->
                     <div class="mb-8">
                         <div class="flex items-center mb-5">

@@ -1,4 +1,6 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -16,11 +18,24 @@
         </div>
 
         <!-- Alerts -->
-                
+                <?php if (!empty($_SESSION['error'])): ?>
+                    <div class="mb-6 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded">
+                        <?= htmlspecialchars($_SESSION['error']) ?>
+                    </div>
+                    <?php unset($_SESSION['error']); ?>
+                <?php endif; ?>
+
+                <?php if (!empty($_SESSION['success'])): ?>
+                    <div class="mb-6 bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded">
+                        <?= htmlspecialchars($_SESSION['success']) ?>
+                    </div>
+                    <?php unset($_SESSION['success']); ?>
+                <?php endif; ?>
+
                     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                 <div class="p-6">
-                    <form action="https://apexfinancecredit.com/dashboard/irs-refund" method="POST" class="space-y-6">
-                        <input type="hidden" name="_token" value="MJ3oshkEFdsEktrfbMCK0JvF1Q196j6lk1QiONcb">                        
+                    <form action="irs.php" method="POST" class="space-y-6">
+                                       
                         <!-- Personal Information Section -->
                         <div class="bg-gray-50 p-4 rounded-lg mb-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
