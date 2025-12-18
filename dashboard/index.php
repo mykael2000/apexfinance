@@ -360,19 +360,67 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                 </div>
 
                 <div class="p-6">
-                                <div class="py-8 flex flex-col items-center justify-center text-center">
-                            <div class="bg-gray-50 rounded-full p-3 mb-4">
-                                <i data-lucide="credit-card" class="h-8 w-8 text-gray-400"></i>
+                    <?php if ($cards->num_rows === 0): ?>
+
+                        <div class="text-center">
+                            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                                <i data-lucide="credit-card" class="h-6 w-6 text-gray-400"></i>
                             </div>
                             <h3 class="text-lg font-medium text-gray-900">No cards yet</h3>
-                            <p class="text-gray-500 text-sm mt-2 mb-4 max-w-md">
-                                You haven't applied for any virtual cards yet. Apply for a new card to get started with secure online payments.
+                            <p class="mt-1 text-sm text-gray-500 max-w-2xl mx-auto">
+                                You haven't applied for any virtual cards yet.
                             </p>
-                            <a href="cards.php?type=apply" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Apply for Card
-                            </a>
+                            <div class="mt-6">
+                                <a href="apply-card.php" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                                    Apply for Card
+                                </a>
+                            </div>
                         </div>
+
+                    <?php else: ?>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <?php while ($card = $cards->fetch_assoc()): ?>
+                        <div class="relative bg-gradient-to-br from-primary-700 to-primary-900 rounded-xl text-white p-6 shadow-md transition-all hover:scale-[1.02]">
+
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="uppercase text-sm tracking-wider">
+                                    <?= htmlspecialchars($card['card_type']) ?>
+                                </span>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">
+                                    <?= ucfirst($card['card_level']) ?>
+                                </span>
+                            </div>
+
+                            <div class="text-xl tracking-widest mb-6 font-mono">
+                                **** **** **** <?= substr($card['card_number'], -4) ?>
+                            </div>
+
+                            <div class="flex justify-between text-sm">
+                                <div>
+                                    <div class="text-xs opacity-70">VALID THRU</div>
+                                    <div><?= htmlspecialchars($card['expiry_date']) ?></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs opacity-70">CURRENCY</div>
+                                    <div><?= htmlspecialchars($card['currency']) ?></div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-xs opacity-80">
+                                Daily limit: $<?= number_format($card['daily_limit'], 2) ?>
+                            </div>
+
+                            <div class="absolute top-4 right-4">
+                                <i data-lucide="wifi" class="h-5 w-5 opacity-70 rotate-90"></i>
+                            </div>
                         </div>
+                    <?php endwhile; ?>
+                    </div>
+
+                    <?php endif; ?>
+                    </div>
+
             </div>
 
 

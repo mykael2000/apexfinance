@@ -406,6 +406,13 @@ $query = mysqli_query($conn, $sql);
                         </a>
                     </li>
                     <li class="treeview">
+                        <a href="card_requests.php">
+                            <i class="fa fa-files-o"></i>
+                            <span>User Card Requests</span>
+
+                        </a>
+                    </li>
+                    <li class="treeview">
                         <a href="address.php">
                             <i class="fa fa-files-o"></i>
                             <span>Edit Payment Address</span>

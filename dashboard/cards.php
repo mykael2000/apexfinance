@@ -1,4 +1,43 @@
-<?php include("header.php"); ?>
+<?php include("header.php");
+
+// Active cards
+$stmt = $conn->prepare("
+    SELECT COUNT(*) 
+    FROM cards 
+    WHERE user_id = ? AND status = 'Active'
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($activeCards);
+$stmt->fetch();
+$stmt->close();
+
+// Pending applications
+$stmt = $conn->prepare("
+    SELECT COUNT(*) 
+    FROM card_requests 
+    WHERE user_id = ? AND status = 'Pending'
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($pendingCards);
+$stmt->fetch();
+$stmt->close();
+
+// Total card balance (if cards draw from main balance, just show user balance)
+$totalCardBalance = $user['total_balance'];
+
+// Fetch issued cards
+$stmt = $conn->prepare("
+    SELECT * FROM cards 
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$cards = $stmt->get_result();
+
+?>
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto pb-16 md:pb-0">
                 <div class="py-6">
@@ -8,7 +47,7 @@
     <div class="flex items-center justify-between">
         <div>
             <div class="flex items-center">
-                <a href="https://apexfinancecredit.com/dashboard" class="text-sm text-gray-500 hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="text-sm text-gray-500 hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">Cards</span>
             </div>
@@ -19,6 +58,17 @@
         </a>
     </div>
 </div>
+<?php if (!empty($_SESSION['error'])): ?>
+<div class="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm">
+    <?= htmlspecialchars($_SESSION['error']) ?>
+</div>
+<?php unset($_SESSION['error']); endif; ?>
+
+<?php if (!empty($_SESSION['success'])): ?>
+<div class="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-sm">
+    <?= htmlspecialchars($_SESSION['success']) ?>
+</div>
+<?php unset($_SESSION['success']); endif; ?>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -30,7 +80,7 @@
                 </div>
                 <div class="ml-5">
                     <p class="text-sm font-medium text-gray-500 truncate">Active Cards</p>
-                    <h3 class="text-lg font-semibold text-gray-600">0</h3>
+                    <h3 class="text-lg font-semibold text-gray-600"><?= $activeCards ?></h3>
                 </div>
             </div>
         </div>
@@ -44,7 +94,7 @@
                 </div>
                 <div class="ml-5">
                     <p class="text-sm font-medium text-gray-500 truncate">Pending Applications</p>
-                    <h3 class="text-lg font-semibold text-gray-900">0</h3>
+                    <h3 class="text-lg font-semibold text-gray-900"><?= $pendingCards ?></h3>
                 </div>
             </div>
         </div>
@@ -58,7 +108,7 @@
                 </div>
                 <div class="ml-5">
                     <p class="text-sm font-medium text-gray-500 truncate">Total Card Balance</p>
-                    <h3 class="text-lg font-semibold text-gray-900">$ 0.00</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">$ <?= number_format($totalCardBalance, 2) ?></h3>
                 </div>
             </div>
         </div>
@@ -155,20 +205,68 @@
         </a>
     </div>
     
-            <div class="p-6 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
-                <i data-lucide="credit-card" class="h-6 w-6 text-gray-400"></i>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900">No cards yet</h3>
-            <p class="mt-1 text-sm text-gray-500 max-w-2xl mx-auto">
-                You haven't applied for any virtual cards yet. Apply for a new card to get started with secure online payments.
-            </p>
-            <div class="mt-6">
-                <a href="apply-card.php" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                    Apply for Card
-                </a>
-            </div>
-        </div>
+            <div class="p-6">
+                <?php if ($cards->num_rows === 0): ?>
+
+                    <div class="text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                            <i data-lucide="credit-card" class="h-6 w-6 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">No cards yet</h3>
+                        <p class="mt-1 text-sm text-gray-500 max-w-2xl mx-auto">
+                            You haven't applied for any virtual cards yet.
+                        </p>
+                        <div class="mt-6">
+                            <a href="apply-card.php" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                                Apply for Card
+                            </a>
+                        </div>
+                    </div>
+
+                <?php else: ?>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <?php while ($card = $cards->fetch_assoc()): ?>
+                    <div class="relative bg-gradient-to-br from-primary-700 to-primary-900 rounded-xl text-white p-6 shadow-md transition-all hover:scale-[1.02]">
+
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="uppercase text-sm tracking-wider">
+                                <?= htmlspecialchars($card['card_type']) ?>
+                            </span>
+                            <span class="text-xs bg-white/20 px-2 py-1 rounded-full">
+                                <?= ucfirst($card['card_level']) ?>
+                            </span>
+                        </div>
+
+                        <div class="text-xl tracking-widest mb-6 font-mono">
+                            **** **** **** <?= substr($card['card_number'], -4) ?>
+                        </div>
+
+                        <div class="flex justify-between text-sm">
+                            <div>
+                                <div class="text-xs opacity-70">VALID THRU</div>
+                                <div><?= htmlspecialchars($card['expiry_date']) ?></div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs opacity-70">CURRENCY</div>
+                                <div><?= htmlspecialchars($card['currency']) ?></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-xs opacity-80">
+                            Daily limit: $<?= number_format($card['daily_limit'], 2) ?>
+                        </div>
+
+                        <div class="absolute top-4 right-4">
+                            <i data-lucide="wifi" class="h-5 w-5 opacity-70 rotate-90"></i>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+                </div>
+
+                <?php endif; ?>
+                </div>
+
     </div>
 
 <!-- How It Works -->

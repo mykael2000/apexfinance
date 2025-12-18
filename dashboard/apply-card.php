@@ -8,15 +8,15 @@
     <div class="flex items-center justify-between">
         <div>
             <div class="flex items-center">
-                <a href="https://bremtglobal.com/dashboard" class="text-sm text-gray-500 hover:text-primary-600">Dashboard</a>
+                <a href="index.php" class="text-sm text-gray-500 hover:text-primary-600">Dashboard</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2 text-gray-400"></i>
-                <a href="https://bremtglobal.com/dashboard/cards" class="text-sm text-gray-500 hover:text-primary-600">Cards</a>
+                <a href="cards.php" class="text-sm text-gray-500 hover:text-primary-600">Cards</a>
                 <i data-lucide="chevron-right" class="h-4 w-4 mx-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">Apply</span>
             </div>
             <h1 class="text-2xl font-bold text-gray-900 mt-2">Apply for Virtual Card</h1>
         </div>
-        <a href="https://bremtglobal.com/dashboard/cards" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+        <a href="cards.php" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
             <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i> Back to Cards
         </a>
     </div>
@@ -36,13 +36,22 @@
             </div>
         </div>
     </div>
-    
+    <?php if (!empty($_SESSION['error'])): ?>
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm">
+        <?= htmlspecialchars($_SESSION['error']) ?>
+    </div>
+    <?php unset($_SESSION['error']); endif; ?>
+
+    <?php if (!empty($_SESSION['success'])): ?>
+    <div class="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-sm">
+        <?= htmlspecialchars($_SESSION['success']) ?>
+    </div>
+    <?php unset($_SESSION['success']); endif; ?>
+
     <!-- Application Form -->
     <div class="p-6">
-        <form action="apply-card.php" method="POST" class="space-y-6">
-            <input type="hidden" name="_token" value="hIZ0KDab6jstC6Ero9ZfZWJmuvCGGsgQPtsuzcNb">            
-                        
-                        
+        <form action="create_card.php" method="POST" class="space-y-6">
+          
             <section class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Card Details</h3>
                 

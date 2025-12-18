@@ -4,43 +4,60 @@ $alert = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $current = $_POST['current_password'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['password_confirmation'] ?? '';
+   $current_password = trim($_POST['current_password'] ?? '');
+    $new_password     = trim($_POST['password'] ?? '');
+    $confirm_password = trim($_POST['password_confirmation'] ?? '');
 
-    if (!$current || !$password || !$confirm) {
-        $alert = '<div class="alert alert-danger">All fields are required.</div>';
-    } elseif ($password !== $confirm) {
-        $alert = '<div class="alert alert-danger">Passwords do not match.</div>';
-    } elseif (strlen($password) < 8) {
-        $alert = '<div class="alert alert-danger">Password must be at least 8 characters.</div>';
-    } else {
-
-        // Fetch current password
-        $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $stmt->bind_result($hashed);
-        $stmt->fetch();
-        $stmt->close();
-
-        if (!$hashed || !password_verify($current, $hashed)) {
-            $alert = '<div class="alert alert-danger">Current password is incorrect.</div>';
-        } else {
-
-            $newHash = password_hash($password, PASSWORD_DEFAULT);
-
-            $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $stmt->bind_param("si", $newHash, $user_id);
-
-            if ($stmt->execute()) {
-                $alert = '<div class="alert alert-success">Password updated successfully. Please log in again.</div>';
-            } else {
-                $alert = '<div class="alert alert-danger">Failed to update password.</div>';
-            }
-            $stmt->close();
-        }
+    if (!$current_password || !$new_password || !$confirm_password) {
+        $_SESSION['error'] = "All fields are required.";
+        header("Location: editpass.php");
+        exit;
     }
+
+    if ($new_password !== $confirm_password) {
+        $_SESSION['error'] = "New passwords do not match.";
+        header("Location: editpass.php");
+        exit;
+    }
+
+    if (strlen($new_password) < 8) {
+        $_SESSION['error'] = "Password must be at least 8 characters.";
+        header("Location: editpass.php");
+        exit;
+    }
+
+    /* -------------------------
+    FETCH USER PASSWORD
+    -------------------------- */
+    $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user   = $result->fetch_assoc();
+
+    if (!$user || !password_verify($current_password, $user['password'])) {
+        $_SESSION['error'] = "Current password is incorrect.";
+        header("Location: editpass.php");
+        exit;
+    }
+
+    /* -------------------------
+    UPDATE PASSWORD
+    -------------------------- */
+    $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+
+    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt->bind_param("si", $new_hash, $user_id);
+
+    if (!$stmt->execute()) {
+        $_SESSION['error'] = "Unable to update password. Try again.";
+        header("Location: editpass.php");
+        exit;
+    }
+
+    $_SESSION['success'] = "Password updated successfully.";
+    header("Location: editpass.php");
+    exit;
 }
 
 ?>
@@ -51,9 +68,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
 <div class="container mx-auto px-4 py-6 max-w-4xl">
     <!-- Alerts -->
-            <?php if (!empty($alert)) : ?>
-                <?= $alert ?>
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+                    <?= htmlspecialchars($_SESSION['error']) ?>
+                </div>
+                <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
+
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div class="mb-4 rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-700">
+                    <?= htmlspecialchars($_SESSION['success']) ?>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+
 
     <!-- Page Header with Breadcrumbs -->
     <div class="flex flex-col mb-6">
