@@ -31,4 +31,42 @@ $user_email = $user["email"];
 
 $userId = $user['id'];
 
+
+// Active cards
+$stmt = $conn->prepare("
+    SELECT COUNT(*) 
+    FROM cards 
+    WHERE user_id = ? AND status = 'Active'
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($activeCards);
+$stmt->fetch();
+$stmt->close();
+
+// Pending applications
+$stmt = $conn->prepare("
+    SELECT COUNT(*) 
+    FROM card_requests 
+    WHERE user_id = ? AND status = 'Pending'
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($pendingCards);
+$stmt->fetch();
+$stmt->close();
+
+// Total card balance (if cards draw from main balance, just show user balance)
+$totalCardBalance = $user['total_balance'];
+
+// Fetch issued cards
+$stmt = $conn->prepare("
+    SELECT * FROM cards 
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$cards = $stmt->get_result();
+
 ?>
