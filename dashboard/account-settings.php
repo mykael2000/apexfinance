@@ -1,6 +1,6 @@
 <?php include("header.php");
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_pin'])) {
 
     $newPin          = trim($_POST['pin'] ?? '');
     $currentPassword = trim($_POST['current_password'] ?? '');
@@ -45,7 +45,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update->execute();
 
     $_SESSION['success'] = "Transaction PIN updated successfully.";
-    header("Location: account-seetings.php");
+    header("Location: account-settings.php");
+    exit;
+}
+
+
+
+$uploadDir = __DIR__ . "/../storage/app/public/photos/";
+$publicPath = "../storage/app/public/photos/";
+
+// Ensure directory exists
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
+
+/**
+ * ===============================
+ * PROFILE PICTURE UPLOAD HANDLER
+ * ===============================
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['photo'])) {
+
+    if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+        $_SESSION['error'] = "Image upload failed.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $fileType = mime_content_type($_FILES['photo']['tmp_name']);
+
+    if (!in_array($fileType, $allowedTypes)) {
+        $_SESSION['error'] = "Only JPG and PNG images are allowed.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    // Max 2MB
+    if ($_FILES['photo']['size'] > 2 * 1024 * 1024) {
+        $_SESSION['error'] = "Image must not exceed 2MB.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    // Generate unique filename
+    $extension = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+    $filename  = "profile_" . $user_id . "_" . time() . "." . $extension;
+
+    $destination = $uploadDir . $filename;
+
+    if (!move_uploaded_file($_FILES['photo']['tmp_name'], $destination)) {
+        $_SESSION['error'] = "Failed to save uploaded image.";
+        header("Location: account-settings.php");
+        exit;
+    }
+
+    // Save path to DB
+    $stmt = $conn->prepare("UPDATE users SET profilePic = ? WHERE id = ?");
+    $relativePath = $publicPath . $filename;
+    $stmt->bind_param("si", $relativePath, $user_id);
+    $stmt->execute();
+
+    $_SESSION['success'] = "Profile picture updated successfully.";
+    header("Location: account-settings.php");
     exit;
 }
 ?>
@@ -84,11 +146,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="relative mb-3">
                         <div class="h-24 w-24 rounded-full border-4 border-white/50 overflow-hidden bg-white shadow-md">
                             <img
-                                src="../storage/app/public/photos"
+                                src="<?php echo !empty($user['profilePic']) ? $user['profilePic'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['firstname']); ?>"
                                 class="h-full w-full object-cover"
-                                alt="<?php echo $user['firstname']; ?>"
-                                onerror="this.src='https://ui-avatars.com/api/?name=<?php echo $user['firstname']; ?>&background=random'"
-                            />
+                                alt="<?php echo htmlspecialchars($user['firstname']); ?>"
+                            >
+
                         </div>
                         <button
                             @click="showProfilePictureModal = true"
@@ -559,6 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="pt-3">
                         <button
                             type="submit"
+                            name="create_pin"
                             class="w-full px-4 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                         >
                             <i data-lucide="rotate-cw" class="h-5 w-5 inline mr-2"></i>

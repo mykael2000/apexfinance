@@ -57,7 +57,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
         <div class="bg-gradient-to-r from-primary-50 to-white rounded-xl p-4 border border-primary-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-800">Current Balance</p>
-                <p class="text-lg font-bold text-gray-800">$<?php echo number_format($user['total_balance'],2,'.',','); ?></p>
+                <p class="text-lg font-bold text-gray-800"><?php echo $user['currency']; ?><?php echo number_format($user['total_balance'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
                 <i data-lucide="wallet" class="h-5 w-5 text-gray-800"></i>
@@ -66,7 +66,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
         <div class="bg-gradient-to-r from-green-50 to-white rounded-xl p-4 border border-green-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Monthly Income</p>
-                <p class="text-lg font-bold text-green-700">$<?php echo number_format($user['monthly_income'],2,'.',','); ?></p>
+                <p class="text-lg font-bold text-green-700"><?php echo $user['currency']; ?><?php echo number_format($user['monthly_income'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                 <i data-lucide="trending-up" class="h-5 w-5 text-green-600"></i>
@@ -75,7 +75,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
         <div class="bg-gradient-to-r from-red-50 to-white rounded-xl p-4 border border-red-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Monthly Outgoing</p>
-                <p class="text-lg font-bold text-red-700">$<?php echo number_format($user['monthly_outgoing'],2,'.',','); ?></p>
+                <p class="text-lg font-bold text-red-700"><?php echo $user['currency']; ?><?php echo number_format($user['monthly_outgoing'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                 <i data-lucide="trending-down" class="h-5 w-5 text-red-600"></i>
@@ -84,7 +84,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
         <div class="bg-gradient-to-r from-purple-50 to-white rounded-xl p-4 border border-purple-100 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">Transaction Limit</p>
-                <p class="text-lg font-bold text-purple-700">$<?php echo number_format($user['transaction_limit'],2,'.',','); ?></p>
+                <p class="text-lg font-bold text-purple-700"><?php echo $user['currency']; ?><?php echo number_format($user['transaction_limit'],2,'.',','); ?></p>
             </div>
             <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                 <i data-lucide="gauge" class="h-5 w-5 text-purple-600"></i>
@@ -137,7 +137,6 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                             <div class="text-xs text-white/70" x-text="currentDate"></div>
                         </div>
                     </div>
-
                     <!-- Balance with hide/show toggle -->
                     <div class="mb-6">
                         <div class="flex items-center justify-between">
@@ -148,7 +147,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                             </button>
                         </div>
                         <div x-show="balanceVisible" x-transition class="text-3xl font-bold">
-                            $<?php echo number_format($user['total_balance'],2,'.',','); ?> USD
+                            <?php echo $user['currency']; ?><?php echo number_format($user['total_balance'],2,'.',','); ?>
                         </div>
                         <div x-show="!balanceVisible" x-transition class="text-3xl font-bold">
                             *******
@@ -171,10 +170,44 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                     <div class="flex items-center">
                         <div class="text-lg font-bold truncate mr-2"><?php echo $user['account_id']; ?></div>
                         <div class="flex-shrink-0">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                <span class="h-1.5 w-1.5 rounded-full bg-red-600 mr-1"></span>
-                                Inactive
+                            <?php
+                            $status = $user['kyc_status'] ?? 'unverified';
+
+                            $styles = [
+                                'verified' => [
+                                    'bg' => 'bg-green-100',
+                                    'text' => 'text-green-800',
+                                    'dot' => 'bg-green-600',
+                                    'label' => 'Verified'
+                                ],
+                                'pending' => [
+                                    'bg' => 'bg-yellow-100',
+                                    'text' => 'text-yellow-800',
+                                    'dot' => 'bg-yellow-600',
+                                    'label' => 'Pending'
+                                ],
+                                'rejected' => [
+                                    'bg' => 'bg-red-100',
+                                    'text' => 'text-red-800',
+                                    'dot' => 'bg-red-600',
+                                    'label' => 'Rejected'
+                                ],
+                                'unverified' => [
+                                    'bg' => 'bg-gray-100',
+                                    'text' => 'text-gray-800',
+                                    'dot' => 'bg-gray-500',
+                                    'label' => 'Unverified'
+                                ]
+                            ];
+
+                            $badge = $styles[$status];
+                            ?>
+
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $badge['bg']; ?> <?= $badge['text']; ?>">
+                                <span class="h-1.5 w-1.5 rounded-full <?= $badge['dot']; ?> mr-1"></span>
+                                <?= $badge['label']; ?>
                             </span>
+
                         </div>
                     </div>
                 </div>
@@ -200,10 +233,44 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
             <div>
                 <div class="flex items-center">
                     <div class="text-sm font-medium mr-2">Your Account Number</div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <span class="h-1.5 w-1.5 rounded-full bg-red-600 mr-1"></span>
-                        Inactive
-                    </span>
+                    <?php
+$status = $user['kyc_status'] ?? 'unverified';
+
+$styles = [
+    'verified' => [
+        'bg' => 'bg-green-100',
+        'text' => 'text-green-800',
+        'dot' => 'bg-green-600',
+        'label' => 'Verified'
+    ],
+    'pending' => [
+        'bg' => 'bg-yellow-100',
+        'text' => 'text-yellow-800',
+        'dot' => 'bg-yellow-600',
+        'label' => 'Pending'
+    ],
+    'rejected' => [
+        'bg' => 'bg-red-100',
+        'text' => 'text-red-800',
+        'dot' => 'bg-red-600',
+        'label' => 'Rejected'
+    ],
+    'unverified' => [
+        'bg' => 'bg-gray-100',
+        'text' => 'text-gray-800',
+        'dot' => 'bg-gray-500',
+        'label' => 'Unverified'
+    ]
+];
+
+$badge = $styles[$status];
+?>
+
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $badge['bg']; ?> <?= $badge['text']; ?>">
+    <span class="h-1.5 w-1.5 rounded-full <?= $badge['dot']; ?> mr-1"></span>
+    <?= $badge['label']; ?>
+</span>
+
                 </div>
                 <div class="text-lg font-bold"><?php echo $user['account_id']; ?></div>
             </div>
@@ -305,7 +372,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            $<?= number_format($tx['amount'], 2) ?>
+                                            <?php echo $user['currency']; ?><?= number_format($tx['amount'], 2) ?>
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -408,7 +475,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                             </div>
 
                             <div class="mt-4 text-xs opacity-80">
-                                Daily limit: $<?= number_format($card['daily_limit'], 2) ?>
+                                Daily limit: <?php echo $user['currency']; ?><?= number_format($card['daily_limit'], 2) ?>
                             </div>
 
                             <div class="absolute top-4 right-4">
@@ -442,7 +509,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm text-gray-500">Transaction Limit</p>
-                            <p class="text-lg font-bold text-gray-900 truncate">$<?php echo $user['transaction_limit']; ?></p>
+                            <p class="text-lg font-bold text-gray-900 truncate"><?php echo $user['currency']; ?><?php echo $user['transaction_limit']; ?></p>
                         </div>
                     </div>
 
@@ -453,7 +520,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm text-gray-500">Pending Transactions</p>
-                            <p class="text-lg font-bold text-gray-900 truncate">$<?php echo $user['pending_transaction']; ?></p>
+                            <p class="text-lg font-bold text-gray-900 truncate"><?php echo $user['currency']; ?><?php echo $user['pending_transaction']; ?></p>
                         </div>
                     </div>
 
@@ -464,7 +531,7 @@ $hasTransactions = mysqli_num_rows($txQuery) > 0;
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm text-gray-500">Transaction Volume</p>
-                            <p class="text-lg font-bold text-gray-900 truncate">$<?php echo $user['transaction_volume']; ?></p>
+                            <p class="text-lg font-bold text-gray-900 truncate"><?php echo $user['currency']; ?><?php echo $user['transaction_volume']; ?></p>
                         </div>
                     </div>
 
